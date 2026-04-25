@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Istanbul Index</title>
+    <link rel="icon" type="image/png" href="stalin1.png">
+    
+    <style>
+        :root {
+            --win-gray: #c0c0c0;
+            --win-blue: #000080;
+            --tkp-red: #cc0000;
+        }
+
+        body {
+            background-color: #008080; /* Classic Teal Desktop */
+            font-family: "Tahoma", "Arial", sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* The Main Window */
+        .window {
+            background: var(--win-gray);
+            width: 100%;
+            max-width: 1000px;
+            border: 2px outset #fff;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Title Bar */
+        .title-bar {
+            background: linear-gradient(90deg, var(--win-blue), #1084d0);
+            padding: 3px 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .title-bar-text { display: flex; align-items: center; gap: 8px; }
+        
+        /* Your requested Title Bar Icon */
+        .mini-logo { width: 16px; height: 16px; background: white; padding: 1px; }
+
+        /* Toolbar / Menu */
+        .menu-bar {
+            display: flex;
+            padding: 2px 5px;
+            border-bottom: 1px solid #808080;
+            gap: 10px;
+            font-size: 12px;
+        }
+
+        .menu-item { cursor: pointer; padding: 2px 5px; }
+        .menu-item:hover { background: var(--win-blue); color: white; }
+
+        /* Top Identity Area */
+        header {
+            padding: 20px;
+            background: #fff;
+            margin: 10px;
+            border: 2px inset #fff;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* Your requested Main Logo */
+        .main-logo { width: 80px; height: 80px; border: 1px solid #000; }
+
+        .brand-h1 { margin: 0; font-size: 24px; color: var(--tkp-red); text-transform: uppercase; }
+        .slogan { font-size: 12px; color: #555; margin-top: 4px; font-weight: bold; }
+
+        /* Search Area */
+        .search-panel {
+            padding: 0 10px 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            background: #fff;
+            border: 2px inset #d4d4d4;
+            padding: 5px;
+            flex-grow: 1;
+            font-family: inherit;
+        }
+
+        button {
+            background: var(--win-gray);
+            border: 2px outset #fff;
+            padding: 4px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+        }
+
+        button:active { border: 2px inset #fff; }
+
+        /* Content Area */
+        main {
+            background: #fff;
+            margin: 10px;
+            border: 2px inset #fff;
+            padding: 15px;
+            height: 60vh;
+            overflow-y: scroll;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+        }
+
+        .card {
+            border: 1px solid transparent;
+            padding: 4px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .card:hover { background: #e8e8e8; border: 1px dotted #000; }
+        .card img { width: 100%; display: block; border: 1px solid #808080; }
+        .card p { font-size: 11px; margin: 5px 0 0; height: 2.4em; overflow: hidden; }
+
+        /* Player Overlay */
+        #player {
+            display: none;
+            position: fixed;
+            top: 5%; left: 5%; width: 90%; height: 90%;
+            background: var(--win-gray);
+            border: 2px outset #fff;
+            z-index: 1000;
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 5px; }
+            header { text-align: center; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="window">
+    <div class="title-bar">
+        <div class="title-bar-text">
+            <img src="stalin1.png" class="mini-logo">
+            The Istanbul Index - [Public Archives]
+        </div>
+        <div class="title-bar-controls">
+            <button style="padding: 0 4px;">?</button>
+            <button style="padding: 0 4px;">X</button>
+        </div>
+    </div>
+
+    <div class="menu-bar">
+        <div class="menu-item" onclick="load('trending')"><u>F</u>ile</div>
+        <div class="menu-item" onclick="load('search?q=movie')"><u>M</u>ovies</div>
+        <div class="menu-item" onclick="load('search?q=tv')"><u>T</u>V_Shows</div>
+        <div class="menu-item"><u>H</u>elp</div>
+    </div>
+
+    <header>
+        <img src="stalin.png" class="main-logo" alt="The Istanbul Index Logo">
+        <div>
+            <h1 class="brand-h1">The Istanbul Index</h1>
+            <div class="slogan">"From all in common, to all in common."</div>
+        </div>
+    </header>
+
+    <div class="search-panel">
+        <input type="text" id="q" placeholder="Enter search terms..." onkeyup="if(event.key==='Enter')search()">
+        <button onclick="search()">Find Now</button>
+    </div>
+
+    <main>
+        <div id="grid" class="grid"></div>
+    </main>
+</div>
+
+<div id="player">
+    <div class="title-bar">
+        <div class="title-bar-text">Media Player - Streaming Content</div>
+        <button onclick="closePlayer()">X</button>
+    </div>
+    <iframe id="v" src="" width="100%" height="95%" frameborder="0" allowfullscreen></iframe>
+</div>
+
+<script>
+    // REPLACE THIS WITH YOUR CLOUDFLARE WORKER URL
+    const WORKER_URL = "https://istanbul.vantiprod.workers.dev/";
+
+    async function load(path) {
+        const r = await fetch(`${WORKER_URL}/${path}`);
+        const d = await r.json();
+        render(d.results);
+    }
+
+    async function search() {
+        const query = document.getElementById('q').value;
+        if(!query) return;
+        load(`search?q=${query}`);
+    }
+
+    function render(list) {
+        const g = document.getElementById('grid');
+        g.innerHTML = list.map(m => {
+            if(!m.poster_path) return '';
+            const type = m.media_type || (m.title ? 'movie' : 'tv');
+            return `
+                <div class="card" onclick="openPlayer('${m.id}', '${type}')">
+                    <img src="https://image.tmdb.org/t/p/w342${m.poster_path}">
+                    <p>${m.title || m.name}</p>
+                </div>
+            `;
+        }).join('');
+    }
+
+    async function openPlayer(id, type) {
+        const overlay = document.getElementById('player');
+        const frame = document.getElementById('v');
+        
+        // Securely fetch link from Worker
+        const r = await fetch(`${WORKER_URL}/play?id=${id}&type=${type}`);
+        const d = await r.json();
+        
+        frame.src = d.url;
+        overlay.style.display = 'block';
+    }
+
+    function closePlayer() {
+        document.getElementById('player').style.display = 'none';
+        document.getElementById('v').src = '';
+    }
+
+    load('trending');
+</script>
+
+</body>
+</html>
