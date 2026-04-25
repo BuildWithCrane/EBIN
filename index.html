@@ -46,8 +46,6 @@
         }
 
         .title-bar-text { display: flex; align-items: center; gap: 8px; }
-        
-        /* Your requested Title Bar Icon */
         .mini-logo { width: 16px; height: 16px; background: white; padding: 1px; }
 
         /* Toolbar / Menu */
@@ -74,61 +72,20 @@
             flex-wrap: wrap;
         }
 
-        /* Your requested Main Logo */
         .main-logo { width: 80px; height: 80px; border: 1px solid #000; }
-
         .brand-h1 { margin: 0; font-size: 24px; color: var(--tkp-red); text-transform: uppercase; }
         .slogan { font-size: 12px; color: #555; margin-top: 4px; font-weight: bold; }
 
         /* Search Area */
-        .search-panel {
-            padding: 0 10px 10px;
-            display: flex;
-            gap: 10px;
-        }
-
-        input {
-            background: #fff;
-            border: 2px inset #d4d4d4;
-            padding: 5px;
-            flex-grow: 1;
-            font-family: inherit;
-        }
-
-        button {
-            background: var(--win-gray);
-            border: 2px outset #fff;
-            padding: 4px 15px;
-            cursor: pointer;
-            font-weight: bold;
-            font-family: inherit;
-        }
-
+        .search-panel { padding: 0 10px 10px; display: flex; gap: 10px; }
+        input { background: #fff; border: 2px inset #d4d4d4; padding: 5px; flex-grow: 1; font-family: inherit; }
+        button { background: var(--win-gray); border: 2px outset #fff; padding: 4px 15px; cursor: pointer; font-weight: bold; font-family: inherit; }
         button:active { border: 2px inset #fff; }
 
         /* Content Area */
-        main {
-            background: #fff;
-            margin: 10px;
-            border: 2px inset #fff;
-            padding: 15px;
-            height: 60vh;
-            overflow-y: scroll;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 15px;
-        }
-
-        .card {
-            border: 1px solid transparent;
-            padding: 4px;
-            text-align: center;
-            cursor: pointer;
-        }
-
+        main { background: #fff; margin: 10px; border: 2px inset #fff; padding: 15px; height: 60vh; overflow-y: scroll; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; }
+        .card { border: 1px solid transparent; padding: 4px; text-align: center; cursor: pointer; }
         .card:hover { background: #e8e8e8; border: 1px dotted #000; }
         .card img { width: 100%; display: block; border: 1px solid #808080; }
         .card p { font-size: 11px; margin: 5px 0 0; height: 2.4em; overflow: hidden; }
@@ -150,6 +107,8 @@
     </style>
 </head>
 <body>
+
+<a href="/archive-internal-access" style="display:none" aria-hidden="true">Private Archive Access</a>
 
 <div class="window">
     <div class="title-bar">
@@ -197,13 +156,27 @@
 </div>
 
 <script>
-    // REPLACE THIS WITH YOUR CLOUDFLARE WORKER URL
+    // Configuration
     const WORKER_URL = "https://istanbul.vantiprod.workers.dev";
+    const SECRET = "RED_BANNER_1923"; // Must match your Worker SECRET_KEY
+
+    // Secure Fetch Helper
+    async function secureFetch(path) {
+        const response = await fetch(`${WORKER_URL}/${path}`, {
+            headers: {
+                'X-Istanbul-Secret': SECRET
+            }
+        });
+        if (!response.ok) {
+            console.error("Bureau Access Denied: Check Secret or CORS.");
+            return null;
+        }
+        return await response.json();
+    }
 
     async function load(path) {
-        const r = await fetch(`${WORKER_URL}/${path}`);
-        const d = await r.json();
-        render(d.results);
+        const d = await secureFetch(path);
+        if (d && d.results) render(d.results);
     }
 
     async function search() {
@@ -230,12 +203,11 @@
         const overlay = document.getElementById('player');
         const frame = document.getElementById('v');
         
-        // Securely fetch link from Worker
-        const r = await fetch(`${WORKER_URL}/play?id=${id}&type=${type}`);
-        const d = await r.json();
-        
-        frame.src = d.url;
-        overlay.style.display = 'block';
+        const d = await secureFetch(`play?id=${id}&type=${type}`);
+        if (d && d.url) {
+            frame.src = d.url;
+            overlay.style.display = 'block';
+        }
     }
 
     function closePlayer() {
@@ -243,6 +215,7 @@
         document.getElementById('v').src = '';
     }
 
+    // Initialize with Trending
     load('trending');
 </script>
 
