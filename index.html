@@ -57,8 +57,9 @@
             font-size: 12px;
         }
 
-        .menu-item { cursor: pointer; padding: 2px 5px; }
-        .menu-item:hover { background: var(--win-blue); color: white; }
+        .menu-item { cursor: pointer; padding: 2px 5px; border: 1px solid transparent; }
+        .menu-item:hover { border: 1px outset #fff; background: var(--win-gray); }
+        .menu-item:active { border: 1px inset #fff; }
 
         /* Top Identity Area */
         header {
@@ -78,7 +79,7 @@
 
         /* Search Area */
         .search-panel { padding: 0 10px 10px; display: flex; gap: 10px; }
-        input { background: #fff; border: 2px inset #d4d4d4; padding: 5px; flex-grow: 1; font-family: inherit; }
+        input { background: #fff; border: 2px inset #d4d4d4; padding: 5px; flex-grow: 1; font-family: inherit; outline: none; }
         button { background: var(--win-gray); border: 2px outset #fff; padding: 4px 15px; cursor: pointer; font-weight: bold; font-family: inherit; }
         button:active { border: 2px inset #fff; }
 
@@ -88,21 +89,33 @@
         .card { border: 1px solid transparent; padding: 4px; text-align: center; cursor: pointer; }
         .card:hover { background: #e8e8e8; border: 1px dotted #000; }
         .card img { width: 100%; display: block; border: 1px solid #808080; }
-        .card p { font-size: 11px; margin: 5px 0 0; height: 2.4em; overflow: hidden; }
+        .card p { font-size: 11px; margin: 5px 0 0; height: 2.4em; overflow: hidden; font-weight: bold; }
 
-        /* Player Overlay */
-        #player {
+        /* Overlays */
+        #player, #info-window {
             display: none;
             position: fixed;
-            top: 5%; left: 5%; width: 90%; height: 90%;
             background: var(--win-gray);
             border: 2px outset #fff;
+            box-shadow: 4px 4px 15px rgba(0,0,0,0.5);
             z-index: 1000;
         }
+
+        #player { top: 5%; left: 5%; width: 90%; height: 90%; }
+        
+        #info-window {
+            top: 50%; left: 50%; width: 420px;
+            transform: translate(-50%, -50%);
+            z-index: 2000;
+        }
+
+        .info-body { padding: 20px; background: #fff; margin: 10px; border: 2px inset #fff; color: #000; }
+        .info-body h3 { margin-top: 0; color: var(--tkp-red); border-bottom: 1px solid #ccc; padding-bottom: 5px; }
 
         @media (max-width: 600px) {
             body { padding: 5px; }
             header { text-align: center; justify-content: center; }
+            #info-window { width: 90%; }
         }
     </style>
 </head>
@@ -117,8 +130,8 @@
             The Istanbul Index - [Public Archives]
         </div>
         <div class="title-bar-controls">
-            <button style="padding: 0 4px;">?</button>
-            <button style="padding: 0 4px;">X</button>
+            <button onclick="openInfo()" style="padding: 0 4px;">?</button>
+            <button onclick="window.close()" style="padding: 0 4px;">X</button>
         </div>
     </div>
 
@@ -126,7 +139,7 @@
         <div class="menu-item" onclick="load('trending')"><u>F</u>ile</div>
         <div class="menu-item" onclick="load('search?q=movie')"><u>M</u>ovies</div>
         <div class="menu-item" onclick="load('search?q=tv')"><u>T</u>V_Shows</div>
-        <div class="menu-item"><u>H</u>elp</div>
+        <div class="menu-item" onclick="openInfo()"><u>I</u>nfo</div>
     </div>
 
     <header>
@@ -147,6 +160,28 @@
     </main>
 </div>
 
+<div id="info-window">
+    <div class="title-bar">
+        <div class="title-bar-text">System Information</div>
+        <button onclick="closeInfo()">X</button>
+    </div>
+    <div class="info-body">
+        <h3>Welcome to The Istanbul Index</h3>
+        <p style="font-size: 13px;">A massive library curated by the community. All files are uploaded by users and are not hosted on our servers.</p>
+        <hr>
+        <p style="font-size: 11px; font-style: italic; color: #555;">
+            See your movie and want to get it taken down so you can continue overcharging families while everyone around you hates you even more? 
+        </p>
+        <p style="font-size: 13px;">
+            No problem! Send a takedown request here and we will respond in due time:<br>
+            <strong style="color: var(--win-blue);">istanbulindex@tuta.io</strong>
+        </p>
+        <div style="text-align: center; margin-top: 15px;">
+            <button onclick="closeInfo()" style="width: 80px;">OK</button>
+        </div>
+    </div>
+</div>
+
 <div id="player">
     <div class="title-bar">
         <div class="title-bar-text">Media Player - Streaming Content</div>
@@ -156,19 +191,15 @@
 </div>
 
 <script>
-    // Configuration
     const WORKER_URL = "https://istanbul.vantiprod.workers.dev";
-    const SECRET = "RED_BANNER_1923"; // Must match your Worker SECRET_KEY
+    const SECRET = "RED_BANNER_1923"; 
 
-    // Secure Fetch Helper
     async function secureFetch(path) {
         const response = await fetch(`${WORKER_URL}/${path}`, {
-            headers: {
-                'X-Istanbul-Secret': SECRET
-            }
+            headers: { 'X-Istanbul-Secret': SECRET }
         });
         if (!response.ok) {
-            console.error("Bureau Access Denied: Check Secret or CORS.");
+            console.error("Bureau Access Denied.");
             return null;
         }
         return await response.json();
@@ -182,7 +213,7 @@
     async function search() {
         const query = document.getElementById('q').value;
         if(!query) return;
-        load(`search?q=${query}`);
+        load(`search?q=${encodeURIComponent(query)}`);
     }
 
     function render(list) {
@@ -200,13 +231,10 @@
     }
 
     async function openPlayer(id, type) {
-        const overlay = document.getElementById('player');
-        const frame = document.getElementById('v');
-        
         const d = await secureFetch(`play?id=${id}&type=${type}`);
         if (d && d.url) {
-            frame.src = d.url;
-            overlay.style.display = 'block';
+            document.getElementById('v').src = d.url;
+            document.getElementById('player').style.display = 'block';
         }
     }
 
@@ -215,9 +243,10 @@
         document.getElementById('v').src = '';
     }
 
-    // Initialize with Trending
+    function openInfo() { document.getElementById('info-window').style.display = 'block'; }
+    function closeInfo() { document.getElementById('info-window').style.display = 'none'; }
+
     load('trending');
 </script>
-
 </body>
 </html>
