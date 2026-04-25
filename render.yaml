@@ -3,4 +3,4 @@ services:
     name: my-app
     runtime: static
     buildCommand: npm run build
-    publishDir: build
+    staticPublishPath: build
