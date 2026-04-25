@@ -1,1 +1,6 @@
-
+services:
+  - type: web
+    name: my-app
+    runtime: static
+    buildCommand: npm run build
+    publishDir: build
