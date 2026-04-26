@@ -14,7 +14,7 @@
         }
 
         body {
-            background-color: #008080; /* Classic Teal Desktop */
+            background-color: #008080;
             font-family: "Tahoma", "Arial", sans-serif;
             margin: 0;
             padding: 20px;
@@ -22,7 +22,6 @@
             justify-content: center;
         }
 
-        /* The Main Window */
         .window {
             background: var(--win-gray);
             width: 100%;
@@ -33,7 +32,6 @@
             flex-direction: column;
         }
 
-        /* Title Bar */
         .title-bar {
             background: linear-gradient(90deg, var(--win-blue), #1084d0);
             padding: 3px 6px;
@@ -48,7 +46,6 @@
         .title-bar-text { display: flex; align-items: center; gap: 8px; }
         .mini-logo { width: 16px; height: 16px; background: white; padding: 1px; }
 
-        /* Toolbar / Menu */
         .menu-bar {
             display: flex;
             padding: 2px 5px;
@@ -59,9 +56,7 @@
 
         .menu-item { cursor: pointer; padding: 2px 5px; border: 1px solid transparent; }
         .menu-item:hover { border: 1px outset #fff; background: var(--win-gray); }
-        .menu-item:active { border: 1px inset #fff; }
 
-        /* Top Identity Area */
         header {
             padding: 20px;
             background: #fff;
@@ -77,7 +72,6 @@
         .brand-h1 { margin: 0; font-size: 24px; color: var(--tkp-red); text-transform: uppercase; }
         .slogan { font-size: 12px; color: #555; margin-top: 4px; font-weight: bold; }
 
-        /* Search Area */
         .search-panel { padding: 0 10px 10px; display: flex; gap: 10px; }
         input { background: #fff; border: 2px inset #d4d4d4; padding: 5px; flex-grow: 1; font-family: inherit; outline: none; }
         
@@ -91,7 +85,6 @@
         }
         button:active { border: 2px inset #fff; }
 
-        /* Content Area */
         main { background: #fff; margin: 10px; border: 2px inset #fff; padding: 15px; height: 60vh; overflow-y: scroll; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; }
         .card { border: 1px solid transparent; padding: 4px; text-align: center; cursor: pointer; }
@@ -99,7 +92,6 @@
         .card img { width: 100%; display: block; border: 1px solid #808080; }
         .card p { font-size: 11px; margin: 5px 0 0; height: 2.4em; overflow: hidden; font-weight: bold; }
 
-        /* Overlays */
         #player, #info-window {
             display: none;
             position: fixed;
@@ -128,8 +120,6 @@
     </style>
 </head>
 <body>
-
-<a href="/archive-internal-access" style="display:none" aria-hidden="true">Private Archive Access</a>
 
 <div class="window">
     <div class="title-bar">
@@ -178,10 +168,10 @@
         <p style="font-size: 13px;">A massive library curated by the community. All files are uploaded by users and are not hosted on our servers.</p>
         <hr>
         <p style="font-size: 11px; font-style: italic; color: #555;">
-            See your movie and want to get it taken down so you can continue overcharging families while everyone around you hates you even more? 
+            See your movie and want to get it taken down? 
         </p>
         <p style="font-size: 13px;">
-            No problem! Send a takedown request here and we will respond in due time:<br>
+            No problem! Send a takedown request here:<br>
             <strong style="color: var(--win-blue);">istanbulindex@tuta.io</strong>
         </p>
         <div style="text-align: center; margin-top: 15px;">
@@ -200,9 +190,7 @@
         Use a <strong>Content Blocker (uBlock)</strong> for the best viewing experience.
     </div>
 
-    <iframe id="v" src="" width="100%" height="90%" frameborder="0" allowfullscreen 
-            sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation-by-user-activation"
-            referrerpolicy="no-referrer"></iframe>
+    <iframe id="v" src="" width="100%" height="90%" frameborder="0" allowfullscreen referrerpolicy="no-referrer"></iframe>
 </div>
 
 <script>
@@ -233,8 +221,9 @@
         g.innerHTML = list.map(m => {
             if(!m.poster_path) return '';
             const type = m.media_type || (m.title ? 'movie' : 'tv');
+            const safeTitle = (m.title || m.name).replace(/'/g, "\\'");
             return `
-                <div class="card" onclick="openPlayer('${m.id}', '${type}', '${(m.title || m.name).replace(/'/g, "\\'")}')">
+                <div class="card" onclick="openPlayer('${m.id}', '${type}', '${safeTitle}')">
                     <img src="https://image.tmdb.org/t/p/w342${m.poster_path}">
                     <p>${m.title || m.name}</p>
                 </div>
@@ -248,12 +237,18 @@
             document.getElementById('player-title').innerText = `Media Player - ${name}`;
             document.getElementById('v').src = d.url;
             document.getElementById('player').style.display = 'block';
+
+            // Redirect Guard: Prevents the iframe from taking over the main tab
+            window.onbeforeunload = function() {
+                return "External script is attempting a redirect. Stay on page?";
+            };
         }
     }
 
     function closePlayer() {
         document.getElementById('player').style.display = 'none';
         document.getElementById('v').src = '';
+        window.onbeforeunload = null; // Disable guard when closing manually
     }
 
     function openInfo() { document.getElementById('info-window').style.display = 'block'; }
