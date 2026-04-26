@@ -80,7 +80,15 @@
         /* Search Area */
         .search-panel { padding: 0 10px 10px; display: flex; gap: 10px; }
         input { background: #fff; border: 2px inset #d4d4d4; padding: 5px; flex-grow: 1; font-family: inherit; outline: none; }
-        button { background: var(--win-gray); border: 2px outset #fff; padding: 4px 15px; cursor: pointer; font-weight: bold; font-family: inherit; }
+        
+        button { 
+            background: var(--win-gray); 
+            border: 2px outset #fff; 
+            padding: 4px 15px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-family: inherit; 
+        }
         button:active { border: 2px inset #fff; }
 
         /* Content Area */
@@ -187,7 +195,8 @@
         <div class="title-bar-text">Media Player - Streaming Content</div>
         <button onclick="closePlayer()">X</button>
     </div>
-    <iframe id="v" src="" width="100%" height="95%" frameborder="0" allowfullscreen></iframe>
+    <iframe id="v" src="" width="100%" height="95%" frameborder="0" allowfullscreen 
+            sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts"></iframe>
 </div>
 
 <script>
