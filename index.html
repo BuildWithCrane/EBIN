@@ -11,6 +11,7 @@
             --win-gray: #c0c0c0;
             --win-blue: #000080;
             --tkp-red: #cc0000;
+            --star-gold: #f1b51c; /* Matching your Registry gold */
         }
 
         body {
@@ -85,12 +86,31 @@
         }
         button:active { border: 2px inset #fff; }
 
-        main { background: #fff; margin: 10px; border: 2px inset #fff; padding: 15px; height: 60vh; overflow-y: scroll; }
+        main { background: #fff; margin: 10px; border: 2px inset #fff; padding: 15px; height: 50vh; overflow-y: scroll; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; }
         .card { border: 1px solid transparent; padding: 4px; text-align: center; cursor: pointer; }
         .card:hover { background: #e8e8e8; border: 1px dotted #000; }
         .card img { width: 100%; display: block; border: 1px solid #808080; }
         .card p { font-size: 11px; margin: 5px 0 0; height: 2.4em; overflow: hidden; font-weight: bold; }
+
+        /* Vetted Footer Style */
+        .vetted-footer {
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #555;
+            border-top: 1px solid #808080;
+        }
+        .small-star {
+            color: var(--star-gold);
+            font-size: 14px;
+            text-shadow: 1px 1px #000;
+        }
 
         #player, #info-window {
             display: none;
@@ -156,6 +176,11 @@
     <main>
         <div id="grid" class="grid"></div>
     </main>
+
+    <div class="vetted-footer">
+        <span>vetted by the all4you registry</span>
+        <span class="small-star">★</span>
+    </div>
 </div>
 
 <div id="info-window">
@@ -238,7 +263,6 @@
             document.getElementById('v').src = d.url;
             document.getElementById('player').style.display = 'block';
 
-            // Redirect Guard: Prevents the iframe from taking over the main tab
             window.onbeforeunload = function() {
                 return "External script is attempting a redirect. Stay on page?";
             };
@@ -248,7 +272,7 @@
     function closePlayer() {
         document.getElementById('player').style.display = 'none';
         document.getElementById('v').src = '';
-        window.onbeforeunload = null; // Disable guard when closing manually
+        window.onbeforeunload = null; 
     }
 
     function openInfo() { document.getElementById('info-window').style.display = 'block'; }
