@@ -11,7 +11,7 @@
             --win-gray: #c0c0c0;
             --win-blue: #000080;
             --tkp-red: #cc0000;
-            --star-gold: #f1b51c; /* Matching your Registry gold */
+            --star-gold: #f1b51c;
         }
 
         body {
@@ -105,11 +105,37 @@
             text-transform: uppercase;
             color: #555;
             border-top: 1px solid #808080;
+            cursor: pointer;
         }
-        .small-star {
-            color: var(--star-gold);
-            font-size: 14px;
-            text-shadow: 1px 1px #000;
+        .vetted-footer:hover { background: #d0d0d0; }
+        .small-star { color: var(--star-gold); font-size: 14px; text-shadow: 1px 1px #000; }
+
+        /* SECURITY WARNING POPUP */
+        #security-popup {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .warning-box {
+            background: var(--win-gray);
+            border: 2px outset #fff;
+            padding: 20px;
+            width: 400px;
+            box-shadow: 5px 5px 15px #000;
+        }
+        .warning-title {
+            background: var(--win-blue);
+            color: white;
+            padding: 3px;
+            font-weight: bold;
+            font-size: 12px;
+            margin: -20px -20px 15px -20px;
+            text-align: left;
+            padding-left: 10px;
         }
 
         #player, #info-window {
@@ -122,18 +148,12 @@
         }
 
         #player { top: 5%; left: 5%; width: 90%; height: 90%; }
-        
-        #info-window {
-            top: 50%; left: 50%; width: 420px;
-            transform: translate(-50%, -50%);
-            z-index: 2000;
-        }
+        #info-window { top: 50%; left: 50%; width: 420px; transform: translate(-50%, -50%); z-index: 2000; }
 
         .info-body { padding: 20px; background: #fff; margin: 10px; border: 2px inset #fff; color: #000; }
         .info-body h3 { margin-top: 0; color: var(--tkp-red); border-bottom: 1px solid #ccc; padding-bottom: 5px; }
 
         @media (max-width: 600px) {
-            body { padding: 5px; }
             header { text-align: center; justify-content: center; }
             #info-window { width: 90%; }
         }
@@ -177,9 +197,26 @@
         <div id="grid" class="grid"></div>
     </main>
 
-    <div class="vetted-footer">
-        <span>vetted by the all4you registry</span>
-        <span class="small-star">★</span>
+    <a href="https://all4you-registry.link" target="_blank" style="text-decoration: none; color: inherit;">
+        <div class="vetted-footer">
+            <span>vetted by the all4you registry</span>
+            <span class="small-star">★</span>
+        </div>
+    </a>
+</div>
+
+<div id="security-popup">
+    <div class="warning-box">
+        <div class="warning-title">Workstation Security Alert</div>
+        <p style="font-size: 13px; font-weight: bold; line-height: 1.5; margin-bottom: 20px;">
+            We strongly recommend the use of a robust Content Blocker (uBlock Origin) and a Privacy-focused browser. 
+            <br><br>
+            The Index is not responsible for the predatory nature of external ad-servers. Protect your workstation.
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button onclick="dismissWarning()" style="width: 100%;">Dismiss</button>
+            <button onclick="neverShowAgain()" style="width: 100%; font-size: 11px;">Never show again</button>
+        </div>
     </div>
 </div>
 
@@ -190,13 +227,9 @@
     </div>
     <div class="info-body">
         <h3>Welcome to The Istanbul Index</h3>
-        <p style="font-size: 13px;">A massive library curated by the community. All files are uploaded by users and are not hosted on our servers.</p>
+        <p style="font-size: 13px;">Community curated archives.</p>
         <hr>
-        <p style="font-size: 11px; font-style: italic; color: #555;">
-            See your movie and want to get it taken down? 
-        </p>
-        <p style="font-size: 13px;">
-            No problem! Send a takedown request here:<br>
+        <p style="font-size: 13px;">Takedown requests:<br>
             <strong style="color: var(--win-blue);">istanbulindex@tuta.io</strong>
         </p>
         <div style="text-align: center; margin-top: 15px;">
@@ -210,17 +243,29 @@
         <div class="title-bar-text" id="player-title">Media Player</div>
         <button onclick="closePlayer()">X</button>
     </div>
-    
-    <div style="background: #ffffcc; border-bottom: 1px solid #808080; padding: 4px; font-size: 11px; color: #000; text-align: center;">
-        Use a <strong>Content Blocker (uBlock)</strong> for the best viewing experience.
-    </div>
-
-    <iframe id="v" src="" width="100%" height="90%" frameborder="0" allowfullscreen referrerpolicy="no-referrer"></iframe>
+    <iframe id="v" src="" width="100%" height="100%" frameborder="0" allowfullscreen referrerpolicy="no-referrer"></iframe>
 </div>
 
 <script>
     const WORKER_URL = "https://istanbul.vantiprod.workers.dev";
     const SECRET = "RED_BANNER_1923"; 
+
+    // Handle Security Warning Visibility
+    window.onload = function() {
+        if (localStorage.getItem('hideSecurityWarning') !== 'true') {
+            document.getElementById('security-popup').style.display = 'flex';
+        }
+        load('trending');
+    };
+
+    function dismissWarning() {
+        document.getElementById('security-popup').style.display = 'none';
+    }
+
+    function neverShowAgain() {
+        localStorage.setItem('hideSecurityWarning', 'true');
+        dismissWarning();
+    }
 
     async function secureFetch(path) {
         const response = await fetch(`${WORKER_URL}/${path}`, {
@@ -262,10 +307,7 @@
             document.getElementById('player-title').innerText = `Media Player - ${name}`;
             document.getElementById('v').src = d.url;
             document.getElementById('player').style.display = 'block';
-
-            window.onbeforeunload = function() {
-                return "External script is attempting a redirect. Stay on page?";
-            };
+            window.onbeforeunload = function() { return "External redirect attempt. Stay?"; };
         }
     }
 
@@ -277,8 +319,6 @@
 
     function openInfo() { document.getElementById('info-window').style.display = 'block'; }
     function closeInfo() { document.getElementById('info-window').style.display = 'none'; }
-
-    load('trending');
 </script>
 </body>
 </html>
